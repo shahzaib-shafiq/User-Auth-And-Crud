@@ -8,6 +8,7 @@ const {
   userInputValidation,
   userLoginValidation,
 } = require("../utils/userValidation");
+const { use } = require("../Routes/user_route");
 exports.SignupUser = async (req, res) => {
   try {
     const signupUser = req.body;
@@ -55,8 +56,9 @@ exports.LoginUser = async (req, res) => {
   try {
     const { emailAddress, password } = req.body;
 
+    console.log(req.body);
     const LoginValidation = userLoginValidation(req.body);
-    if (LoginValidation) {
+    if (!LoginValidation) {
       return res.status(400).json({ status: false, message: validationError });
     }
 
@@ -76,17 +78,28 @@ exports.LoginUser = async (req, res) => {
         .json({ status: false, message: "Invalid Email or Password" });
     }
 
-    const token = jwt.sign(
-      {
-        email: user.emailAddress,
-      },
-      process.env.TOKEN_KEY,
-      { expiresIn: "24h" }
-    );
+    let token;
+    try {
+      //Creating jwt token
+      token = jwt.sign(
+        {
+          email: user.emailAddress,
+        },
+        "secret",
+        { expiresIn: "12h" }
+      );
+    } catch (err) {
+      console.log(err);
+      const error = new Error("Error! Something went wrong.");
+      return next(error);
+    }
+
     res.status(200).json({
-      status: true,
-      message: "User Login successful",
-      token,
+      success: true,
+      data: {
+        email: user.emailAddress,
+        token: token,
+      },
     });
   } catch (error) {
     res.status(500).json({

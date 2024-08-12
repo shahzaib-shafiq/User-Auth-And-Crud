@@ -21,6 +21,8 @@ exports.userInputValidation = async (userdata) => {
 exports.userLoginValidation = async (userdata) => {
   const { emailAddress, password } = userdata;
 
+  console.log("validation", userdata);
+
   if (
     !emailAddress ||
     !password ||
