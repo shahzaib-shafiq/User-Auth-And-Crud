@@ -14,7 +14,7 @@ const Item = sequelize.define("item", {
   },
   description: {
     type: DataTypes.TEXT,
-    allowNull: true,
+    allowNull: false,
   },
   price: {
     type: DataTypes.DECIMAL(10, 2),
@@ -25,3 +25,18 @@ const Item = sequelize.define("item", {
     allowNull: false,
   },
 });
+
+//Sync the model with the database, checking if the table already exists
+// Item.sync({ alter: true }) // you can use force true instead of alter to drop the table and create new
+//   .then((result) => {
+//     if (result.changed) {
+//       console.log("Admin table updated successfully.");
+//     } else {
+//       console.log("Admin table already exists and is up to date.");
+//     }
+//   })
+//   .catch((err) => {
+//     console.error("Error synchronizing Admin table:", err);
+//   });
+
+module.exports = Item;
