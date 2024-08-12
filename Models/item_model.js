@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../Config/dbConnection");
-
+const User = require("../Models/user_model");
 const Item = sequelize.define("item", {
   id: {
     type: DataTypes.INTEGER,
@@ -24,7 +24,13 @@ const Item = sequelize.define("item", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
 });
+
+//Item.sync();
 
 //Sync the model with the database, checking if the table already exists
 // Item.sync({ alter: true }) // you can use force true instead of alter to drop the table and create new
@@ -39,4 +45,5 @@ const Item = sequelize.define("item", {
 //     console.error("Error synchronizing Admin table:", err);
 //   });
 
+// User.hasMany(Item);
 module.exports = Item;

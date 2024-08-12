@@ -83,6 +83,7 @@ exports.LoginUser = async (req, res) => {
       //Creating jwt token
       token = jwt.sign(
         {
+          id: user.id,
           email: user.emailAddress,
         },
         "secret",

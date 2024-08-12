@@ -1,10 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const app = express();
-app.use(express.json());
-const { addItem, getAllItems } = require("../Controller/item_controller");
 
-router.post("/additem", addItem);
-router.get("/getallitems", getAllItems);
+const {
+  addItem,
+  getAllItems,
+  getItemsbyId,
+} = require("../Controller/item_controller");
+const { verifyToken } = require("../middleware/authentication");
+
+router.post("/additem/", verifyToken, addItem);
+router.get("/getallitems", verifyToken, getAllItems);
+router.get("/getitem/:id/", verifyToken, getItemsbyId);
 
 module.exports = router;
