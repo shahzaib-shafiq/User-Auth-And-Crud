@@ -30,24 +30,26 @@ exports.addItem = async (req, res) => {
 
 exports.getItemsbyId = async (req, res) => {
   try {
-    const itemId = req.params;
-    console.log(itemId);
-    const item = await Item.findAll({
-      where: {
-        id: itemId,
-      },
-    });
+    const itemId = req.params.id;
+    console.log("item_id", itemId);
+
+    const item = await Item.findByPk(itemId);
 
     if (item) {
-      res.status(201).json({
-        message: "Item Fetched successfully",
-        item,
+      res.status(200).json({
+        message: "Item retrieved successfully",
+        data: item,
+      });
+    } else {
+      res.status(404).json({
+        message: "Item not found",
       });
     }
   } catch (error) {
-    console.error("Error in Fetching Item", error);
+    console.error("Error retrieving item:", error);
     res.status(500).json({
-      message: error.message,
+      message: "An error occurred while retrieving the item",
+      error: error.message,
     });
   }
 };

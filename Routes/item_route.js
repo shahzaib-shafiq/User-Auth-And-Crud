@@ -10,6 +10,6 @@ const { verifyToken } = require("../middleware/authentication");
 
 router.post("/additem/", verifyToken, addItem);
 router.get("/getallitems", verifyToken, getAllItems);
-router.get("/getitem/:id/", verifyToken, getItemsbyId);
+router.get("/getitem/:id", verifyToken, getItemsbyId);
 
 module.exports = router;
