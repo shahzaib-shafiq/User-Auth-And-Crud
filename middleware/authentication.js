@@ -17,7 +17,7 @@ exports.verifyToken = async (req, res, next) => {
 
       // Verify token
       const decode = jwt.verify(token, "secret");
-      console.log("Decoded token:", decode);
+      // console.log("Decoded token:", decode);
 
       const user = await User.findOne({
         where: {

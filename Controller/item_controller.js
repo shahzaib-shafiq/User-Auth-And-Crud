@@ -1,4 +1,5 @@
 const Item = require("../Models/item_model");
+const User = require("../Models/user_model");
 
 exports.addItem = async (req, res) => {
   try {
@@ -60,13 +61,23 @@ exports.getItemsbyId = async (req, res) => {
 exports.getAllItems = async (req, res) => {
   try {
     const userId = req.id;
-    const email = req.email;
-    console.log("ids", userId, req.emailAddress);
-    const item = await Item.findAll();
-    if (item) {
-      res.status(201).json({
-        message: "Item Fetched successfully",
-        item,
+    const email = req.emailAddress;
+    console.log("-----------ids----------------------------", userId, email);
+
+    const getuser = await User.findByPk(userId);
+    //console.log(getuser.id);
+    if (getuser.id === userId) {
+      const item = await Item.findAll();
+      if (item) {
+        res.status(201).json({
+          message: "Item Fetched successfully",
+          item,
+        });
+      }
+    } else {
+      console.error("Error in Fetching Items", error);
+      res.status(500).json({
+        message: error.message,
       });
     }
   } catch (error) {
