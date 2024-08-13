@@ -7,6 +7,7 @@ app.use(express.json());
 const {
   userInputValidation,
   userLoginValidation,
+  userUpdateValidation,
 } = require("../utils/userValidation");
 const { use } = require("../Routes/user_route");
 exports.SignupUser = async (req, res) => {
@@ -109,4 +110,40 @@ exports.LoginUser = async (req, res) => {
       error,
     });
   }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const userIds = req.id;
+    const updateData = req.body.emailAddress;
+
+    console.log(userIds, updateData);
+    console.log("validating ");
+    const ValidateUserData = await userUpdateValidation(updateData);
+    console.log("after validating ");
+    if (ValidateUserData) {
+      return res.status(400).json({ message: validationError });
+    }
+    const finduser = await User.findOne({
+      where: {
+        id: userIds,
+      },
+    });
+
+    if (finduser) {
+      const user = await User.update(updateData, {
+        where: {
+          id: userIds,
+        },
+      });
+      res.status(200).json({
+        message: "User updated successfully",
+        data: finditem,
+      });
+    } else {
+      res.status(401).json({
+        message: "User Does Not Exist",
+      });
+    }
+  } catch (error) {}
 };
