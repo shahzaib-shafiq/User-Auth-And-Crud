@@ -97,19 +97,26 @@ exports.getAllItems = async (req, res) => {
 
 exports.deleteItem = async (req, res) => {
   try {
-    const { id } = req.params;
-    console.log(id);
-    const item = await Item.findByPk(id);
+    const itemId = req.params.id;
+    const userIds = req.id;
 
-    if (!item) {
-      return res.status(404).json({
-        message: "Item not found",
+    const item = await Item.destroy({
+      where: {
+        id: itemId,
+        userId: userIds,
+      },
+    });
+    if (item) {
+      res.status(200).json({
+        message: "Item Deleted successfully",
+        data: item,
+      });
+    } else {
+      res.status(401).json({
+        message: "Item Does Not Exist",
+        data: item,
       });
     }
-    await item.destroy();
-    res.status(200).json({
-      message: "Item deleted successfully",
-    });
   } catch (error) {
     console.error("Error in Deleting Item", error);
     res.status(500).json({
