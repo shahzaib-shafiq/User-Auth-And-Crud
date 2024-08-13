@@ -68,24 +68,23 @@ exports.getItemsbyId = async (req, res) => {
 
 exports.getAllItems = async (req, res) => {
   try {
-    const userId = req.id;
+    const userIds = req.id;
     const email = req.emailAddress;
-    console.log("-----------ids----------------------------", userId, email);
 
-    const getuser = await User.findByPk(userId);
-    //console.log(getuser.id);
-    if (getuser.id === userId) {
-      const item = await Item.findAll();
-      if (item) {
-        res.status(201).json({
-          message: "Item Fetched successfully",
-          item,
-        });
-      }
+    const item = await Item.findAll({
+      where: {
+        userId: userIds,
+      },
+    });
+    if (item) {
+      res.status(200).json({
+        message: "Item retrieved successfully",
+        data: item,
+      });
     } else {
-      console.error("Error in Fetching Items", error);
-      res.status(500).json({
-        message: error.message,
+      res.status(401).json({
+        message: "Item Does Not Exist",
+        data: item,
       });
     }
   } catch (error) {
