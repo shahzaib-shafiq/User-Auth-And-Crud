@@ -19,6 +19,11 @@ exports.addItem = async (req, res) => {
       res.status(201).json({
         message: "Item added successfully",
       });
+    } else {
+      res.status(500).json({
+        message: "Unable to Add Item to Database",
+        error: error.message,
+      });
     }
   } catch (error) {
     console.error("Error adding item:", error);
@@ -39,7 +44,7 @@ exports.getItemsbyId = async (req, res) => {
 
     //const item = await Item.findByPk(itemId);
 
-    const item = await Item.findAll({
+    const item = await Item.findOne({
       where: {
         id: itemId,
         userId: userIds,
@@ -69,7 +74,6 @@ exports.getItemsbyId = async (req, res) => {
 exports.getAllItems = async (req, res) => {
   try {
     const userIds = req.id;
-    const email = req.emailAddress;
 
     const item = await Item.findAll({
       where: {
@@ -83,7 +87,7 @@ exports.getAllItems = async (req, res) => {
       });
     } else {
       res.status(401).json({
-        message: "Item Does Not Exist",
+        message: "No Item in your Bucket",
         data: item,
       });
     }
@@ -100,21 +104,27 @@ exports.deleteItem = async (req, res) => {
     const itemId = req.params.id;
     const userIds = req.id;
 
-    const item = await Item.destroy({
+    const finditem = await Item.findOne({
       where: {
         id: itemId,
         userId: userIds,
       },
     });
-    if (item) {
+
+    if (finditem) {
+      const item = await Item.destroy({
+        where: {
+          id: itemId,
+          userId: userIds,
+        },
+      });
       res.status(200).json({
         message: "Item Deleted successfully",
-        data: item,
+        data: finditem,
       });
     } else {
       res.status(401).json({
         message: "Item Does Not Exist",
-        data: item,
       });
     }
   } catch (error) {
@@ -132,21 +142,27 @@ exports.updateItem = async (req, res) => {
 
     const updateData = req.body;
 
-    const item = await Item.update(updateData, {
+    const finditem = await Item.findOne({
       where: {
         id: itemId,
         userId: userIds,
       },
     });
 
-    if (item) {
+    if (finditem) {
+      const item = await Item.update(updateData, {
+        where: {
+          id: itemId,
+          userId: userIds,
+        },
+      });
       res.status(200).json({
-        message: "Item updated successfully",
-        item,
+        message: "Item Deleted successfully",
+        data: finditem,
       });
     } else {
-      return res.status(404).json({
-        message: "Item not found",
+      res.status(401).json({
+        message: "Item Does Not Exist",
       });
     }
   } catch (error) {
