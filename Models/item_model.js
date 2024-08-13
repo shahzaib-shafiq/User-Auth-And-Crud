@@ -28,6 +28,10 @@ const Item = sequelize.define("item", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  image_url: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 });
 
 //Item.sync();

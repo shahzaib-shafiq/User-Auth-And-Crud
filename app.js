@@ -1,6 +1,9 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const morgan = require("morgan");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
 // const { dbConnection } = require("./Config/mySql");
 const { SERVER_PORT } = require("./Config/config");
@@ -12,6 +15,9 @@ const associations = require("./Models/user_items_associations");
 // Creating an Express application instance
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+
 const PORT = SERVER_PORT | 3000;
 (async function () {
   try {
