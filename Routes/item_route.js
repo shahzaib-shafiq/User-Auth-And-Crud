@@ -22,6 +22,6 @@ router.post("/additem/", verifyToken, upload.single("file"), addItem);
 router.get("/getallitems", verifyToken, getAllItems);
 router.get("/getitem/:id", verifyToken, getItemsbyId);
 router.delete("/deleteitem/:id", verifyToken, deleteItem);
-router.patch("/updateitem/:id", verifyToken, updateItem);
+router.patch("/updateitem/:id", verifyToken, upload.single("file"), updateItem);
 
 module.exports = router;
