@@ -1,10 +1,18 @@
-import User from "../Models/item_model";
-import Item from "../Models/item_model";
+const User = require("../Models/item_model");
+const Item = require("../Models/item_model");
 
-User.hasMany(Item, {
-  foreignKey: "userId",
-});
+const associations = async () => {
+  try {
+    await User.hasMany(Item, {
+      foreignKey: "userId",
+    });
 
-Item.hasOne(User, {
-  foreignKey: "userId",
-});
+    await Item.hasOne(User, {
+      foreignKey: "userId",
+    });
+  } catch (error) {
+    console.log("error");
+  }
+};
+
+module.exports = associations;

@@ -1,6 +1,6 @@
 const Item = require("../Models/item_model");
 const User = require("../Models/user_model");
-
+require("../Models/user_items_associations");
 exports.addItem = async (req, res) => {
   try {
     const userId = req.id;
