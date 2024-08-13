@@ -73,10 +73,49 @@ exports.getAllItems = async (req, res) => {
 
 exports.deleteItem = async (req, res) => {
   try {
-  } catch (error) {}
+    const { id } = req.params;
+    console.log(id);
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).json({
+        message: "Item not found",
+      });
+    }
+    await item.destroy();
+    res.status(200).json({
+      message: "Item deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in Deleting Item", error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
 
 exports.updateItem = async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
   try {
-  } catch (error) {}
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).json({
+        message: "Item not found",
+      });
+    }
+    await item.update(updateData);
+
+    res.status(200).json({
+      message: "Item updated successfully",
+      item,
+    });
+  } catch (error) {
+    console.error("Error in Updating Item", error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
