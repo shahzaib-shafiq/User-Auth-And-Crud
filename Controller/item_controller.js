@@ -29,6 +29,9 @@ exports.addItem = async (req, res) => {
 };
 
 exports.getItemsbyId = async (req, res) => {
+  const userId = req.id;
+  const email = req.emailAddress;
+  console.log("ids", userId, email);
   try {
     const itemId = req.params.id;
     console.log("item_id", itemId);
@@ -56,6 +59,9 @@ exports.getItemsbyId = async (req, res) => {
 
 exports.getAllItems = async (req, res) => {
   try {
+    const userId = req.id;
+    const email = req.email;
+    console.log("ids", userId, req.emailAddress);
     const item = await Item.findAll();
     if (item) {
       res.status(201).json({

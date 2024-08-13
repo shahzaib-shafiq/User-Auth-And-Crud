@@ -1,28 +1,34 @@
 const jwt = require("jsonwebtoken");
-
 const User = require("../Models/user_model");
 
 exports.verifyToken = async (req, res, next) => {
   try {
-    if (
-      req.headers &&
-      req.headers.authorization &&
-      req.headers.authorization !== "null" &&
-      req.headers.authorization !== undefined
-    ) {
-      const token = req.headers.authorization;
-      const split_token = token.split(" ");
-      const decode = jwt.verify(split_token[1], "secret");
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1]; // Extract the token from the header
+
+      if (!token) {
+        return res.status(401).json({
+          status: false,
+          message: "Token not provided",
+        });
+      }
+
+      // Verify token
+      const decode = jwt.verify(token, "secret");
+      console.log("Decoded token:", decode);
 
       const user = await User.findOne({
         where: {
           id: decode.id,
+          emailAddress: decode.emailAddress,
         },
       });
 
       if (user) {
         req.id = decode.id;
-
+        req.emailAddress = decode.emailAddress;
         next();
       } else {
         res.status(401).json({
@@ -37,6 +43,7 @@ exports.verifyToken = async (req, res, next) => {
       });
     }
   } catch (error) {
+    console.error("Error in token verification:", error);
     res.status(401).json({
       status: false,
       message: "Not authorized to access this route",

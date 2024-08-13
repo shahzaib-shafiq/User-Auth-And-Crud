@@ -78,13 +78,14 @@ exports.LoginUser = async (req, res) => {
         .json({ status: false, message: "Invalid Email or Password" });
     }
 
+    console.log("Encoding ", user.id, user.emailAddress);
     let token;
     try {
       //Creating jwt token
       token = jwt.sign(
         {
           id: user.id,
-          email: user.emailAddress,
+          emailAddress: user.emailAddress,
         },
         "secret",
         { expiresIn: "12h" }
