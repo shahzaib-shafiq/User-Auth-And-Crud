@@ -30,15 +30,23 @@ exports.addItem = async (req, res) => {
 };
 
 exports.getItemsbyId = async (req, res) => {
-  const userId = req.id;
+  const userIds = req.id;
   const email = req.emailAddress;
-  console.log("ids", userId, email);
   try {
     const itemId = req.params.id;
     console.log("item_id", itemId);
+    console.log("ids", userIds, email);
 
-    const item = await Item.findByPk(itemId);
+    //const item = await Item.findByPk(itemId);
 
+    const item = await Item.findAll({
+      where: {
+        id: itemId,
+        userId: userIds,
+      },
+    });
+
+    console.log(item);
     if (item) {
       res.status(200).json({
         message: "Item retrieved successfully",
