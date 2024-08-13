@@ -126,23 +126,29 @@ exports.deleteItem = async (req, res) => {
 };
 
 exports.updateItem = async (req, res) => {
-  const { id } = req.params;
-  const updateData = req.body;
-
   try {
-    const item = await Item.findByPk(id);
+    const itemId = req.params.id;
+    const userIds = req.id;
 
-    if (!item) {
+    const updateData = req.body;
+
+    const item = await Item.update(updateData, {
+      where: {
+        id: itemId,
+        userId: userIds,
+      },
+    });
+
+    if (item) {
+      res.status(200).json({
+        message: "Item updated successfully",
+        item,
+      });
+    } else {
       return res.status(404).json({
         message: "Item not found",
       });
     }
-    await item.update(updateData);
-
-    res.status(200).json({
-      message: "Item updated successfully",
-      item,
-    });
   } catch (error) {
     console.error("Error in Updating Item", error);
     res.status(500).json({
