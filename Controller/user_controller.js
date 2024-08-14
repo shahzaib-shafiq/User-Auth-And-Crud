@@ -212,10 +212,53 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
-exports.fetchAllUsers = async () => {};
+exports.fetchAllUsers = async (req, res) => {
+  try {
+    console.log("-------------------------------");
+    const allUsers = await User.findAll({});
 
-exports.fetchUserById = async () => {};
+    if (allUsers) {
+      res.status(200).json({ message: "All Users Fetched ", user: allUsers });
+    } else {
+      res.status(500).json({ message: "Error in fetching Users" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+};
 
-exports.deleteUserById = async () => {};
+exports.fetchUserById = async (req, res) => {
+  try {
+    const userId = req.id;
 
-exports.forgotPassword = async () => {};
+    findUser = await User.findOne({ id: userId });
+    if (findUser) {
+      res.status(200).json({ message: "fetched User", user: findUser });
+    } else {
+      res.status(500).json({ message: "Error in fetching User by Id" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error in fetching User by Id" });
+  }
+};
+
+exports.deleteUserById = async (req, res) => {
+  try {
+    const userId = req.id;
+
+    const findUser = await User.findOne({ id: userId });
+    if (findUser) {
+      const deleteUser = await User.destroy({ id: userId });
+    }
+
+    if (deleteUser) {
+      res.status(200).json({ message: "Deleted User", user: deleteUser });
+    } else {
+      res.status(500).json({ message: "Error in Deleting User" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error in Deleting User" });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {};

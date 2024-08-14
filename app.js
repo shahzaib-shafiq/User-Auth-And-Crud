@@ -7,9 +7,9 @@ const upload = multer({ dest: "uploads/" });
 
 // const { dbConnection } = require("./Config/mySql");
 const { SERVER_PORT } = require("./Config/config");
-const SignupUser = require("./Routes/user_route");
-const LoginUser = require("./Routes/user_route");
-const addItem = require("./Routes/item_route");
+const Users = require("./Routes/user_route");
+
+const Items = require("./Routes/item_route");
 const dbConnection = require("./Config/db_connection");
 const associations = require("./Models/user_items_associations");
 // Creating an Express application instance
@@ -29,9 +29,8 @@ const PORT = SERVER_PORT | 3000;
     console.log("Associations Created");
   } catch (err) {}
 })();
-app.use("/users", SignupUser);
-app.use("/users", LoginUser);
-app.use("/items", addItem);
+app.use("/users", Users);
+app.use("/items", Items);
 
 // Start the server
 app.listen(PORT, () => {
