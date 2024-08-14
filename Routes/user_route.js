@@ -6,6 +6,7 @@ const {
   SignupUser,
   LoginUser,
   updateUser,
+  updatePassword,
 } = require("../Controller/user_controller");
 const { verifyToken } = require("../middleware/authentication");
 
@@ -41,5 +42,6 @@ const { verifyToken } = require("../middleware/authentication");
 router.post("/signup", SignupUser);
 router.post("/login", LoginUser);
 router.patch("/updateUser/:id", verifyToken, updateUser);
+router.patch("/updatePassword/:id", verifyToken, updatePassword);
 
 module.exports = router;

@@ -71,3 +71,13 @@ exports.userUpdateValidation = async (userdata) => {
 
   return null;
 };
+
+exports.validatePassword = async (userpass) => {
+  const { oldPassword, newPassword, confirmPassword } = userpass;
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    console.log(oldPassword, newPassword, confirmPassword);
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  return true;
+};

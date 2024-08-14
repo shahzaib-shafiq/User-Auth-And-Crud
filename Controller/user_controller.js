@@ -8,8 +8,10 @@ const {
   userInputValidation,
   userLoginValidation,
   userUpdateValidation,
+  validatePassword,
 } = require("../utils/userValidation");
 const { use } = require("../Routes/user_route");
+const { where } = require("sequelize");
 exports.SignupUser = async (req, res) => {
   try {
     const signupUser = req.body;
@@ -168,5 +170,44 @@ exports.updateUser = async (req, res) => {
     return res.status(500).json({
       message: "Internal server error",
     });
+  }
+};
+
+exports.updatePassword = async (req, res) => {
+  try {
+    const userId = req.id;
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    let validateUserPassword = validatePassword(req.body);
+
+    if (!validateUserPassword) {
+      return res.status(404).json({ message: "Enter Passwords" });
+    }
+
+    // console.log(validateUserPassword);
+    const findUser = await User.findOne({ where: { id: userId } });
+    if (!findUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const passwordCheck = await bcrypt.compare(oldPassword, findUser.password);
+
+    if (!passwordCheck) {
+      return res.status(401).json({ message: "Incorrect old password" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "New passwords do not match" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await User.update({ password: hashedPassword }, { where: { id: userId } });
+
+    // Send a success response
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating user password:", error);
+    res.status(500).json({ message: "Error updating password" });
   }
 };
