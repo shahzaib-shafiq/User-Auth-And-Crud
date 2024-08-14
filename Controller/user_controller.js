@@ -211,3 +211,11 @@ exports.updatePassword = async (req, res) => {
     res.status(500).json({ message: "Error updating password" });
   }
 };
+
+exports.fetchAllUsers = async () => {};
+
+exports.fetchUserById = async () => {};
+
+exports.deleteUserById = async () => {};
+
+exports.forgotPassword = async () => {};
