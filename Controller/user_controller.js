@@ -3,6 +3,8 @@ const User = require("../Models/user_model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const app = express();
+const userdetails = require("../Config/config");
+const generator = require("generate-password");
 app.use(express.json());
 const {
   userInputValidation,
@@ -12,6 +14,8 @@ const {
 } = require("../utils/userValidation");
 const { use } = require("../Routes/user_route");
 const { where } = require("sequelize");
+var nodemailer = require("nodemailer");
+
 exports.SignupUser = async (req, res) => {
   try {
     const signupUser = req.body;
@@ -24,7 +28,6 @@ exports.SignupUser = async (req, res) => {
     const emailAddress = signupUser.emailAddress;
     const Name = signupUser.Name;
     const password = signupUser.password;
-    console.log("-----------------------");
 
     console.log("Checking for Existing Email");
     const existingEmail = await User.findOne({
@@ -90,7 +93,7 @@ exports.LoginUser = async (req, res) => {
           id: user.id,
           emailAddress: user.emailAddress,
         },
-        "secret",
+        userdetails.SECRET,
         { expiresIn: "12h" }
       );
     } catch (err) {
@@ -265,4 +268,51 @@ exports.deleteUserById = async (req, res) => {
   }
 };
 
-exports.forgotPassword = async (req, res) => {};
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  host: "smtp.gmail.email",
+  port: 587,
+  secure: false, // Use `true` for port 465, `false` for all other ports
+  auth: {
+    user: userdetails.EMAIL,
+    pass: userdetails.PASS,
+  },
+});
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const userId = req.id;
+
+    const findUser = await User.findOne({ where: { id: userId } });
+
+    if (!findUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const newPassword = generator.generate({
+      length: 8,
+      numbers: false,
+      symbols: false,
+      uppercase: true,
+      excludeSimilarCharacters: true,
+      strict: true,
+    });
+
+    console.log(newPassword);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await User.update({ password: hashedPassword }, { where: { id: userId } });
+
+    const email = findUser.emailAddress;
+    await transporter.sendMail({
+      from: userdetails.EMAIL,
+      to: email,
+      subject: "Your New Password",
+      html: `<p>Your new password is: <strong>${newPassword}</strong></p>`,
+    });
+
+    res.status(200).json({ message: "New password sent to your email" });
+  } catch (error) {
+    console.error("Error sending new password:", error);
+    res.status(500).json({ message: "Error sending new password" });
+  }
+};
