@@ -230,14 +230,19 @@ exports.fetchAllUsers = async (req, res) => {
 exports.fetchUserById = async (req, res) => {
   try {
     const userId = req.id;
+    const u = req.query.id;
 
-    findUser = await User.findOne({ id: userId });
+    console.log(u);
+    const findUser = await User.findOne({ where: { id: userId } });
+
+    // Check if the user was found
     if (findUser) {
-      res.status(200).json({ message: "fetched User", user: findUser });
+      res.status(200).json({ message: "Fetched User", user: findUser });
     } else {
-      res.status(500).json({ message: "Error in fetching User by Id" });
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
+    console.error("Error in fetching user by ID:", error);
     res.status(500).json({ message: "Error in fetching User by Id" });
   }
 };
@@ -246,15 +251,14 @@ exports.deleteUserById = async (req, res) => {
   try {
     const userId = req.id;
 
-    const findUser = await User.findOne({ id: userId });
+    const findUser = await User.findOne({ where: { id: userId } });
     if (findUser) {
-      const deleteUser = await User.destroy({ id: userId });
-    }
-
-    if (deleteUser) {
-      res.status(200).json({ message: "Deleted User", user: deleteUser });
-    } else {
-      res.status(500).json({ message: "Error in Deleting User" });
+      const deleteUser = await User.destroy({ where: { id: userId } });
+      if (deleteUser) {
+        res.status(200).json({ message: "Deleted User", user: deleteUser });
+      } else {
+        res.status(500).json({ message: "Error in Deleting User" });
+      }
     }
   } catch (error) {
     res.status(500).json({ message: "Error in Deleting User" });
