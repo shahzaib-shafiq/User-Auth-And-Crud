@@ -37,22 +37,24 @@ exports.userLoginValidation = async (userdata) => {
 };
 
 exports.userUpdateValidation = async (userdata) => {
-  const { emailAddress } = userdata;
+  const emailAddress = userdata;
   var validRegex =
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
+  console.log(emailAddress);
   if (!emailAddress || emailAddress === null || emailAddress === undefined) {
     return "Enter Email Correctly";
   }
   console.log("validation", userdata);
-  // if (!emailRegex.test(emailAddress)) {
-  //   return "Enter a valid email address";
-  // }
-
-  if (emailAddress.match(validRegex)) {
-    console.log("email valid");
-    return null;
-  } else {
-    return "Email is Not Valid";
+  if (!validRegex.test(emailAddress)) {
+    return "Enter a valid email address";
   }
+
+  // if (emailAddress.match(validRegex)) {
+  //   console.log("email valid");
+  //   return null;
+  // } else {
+  //   return "Email is Not Valid";
+  // }
+  return null;
 };

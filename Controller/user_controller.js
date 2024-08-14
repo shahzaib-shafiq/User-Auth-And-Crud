@@ -115,35 +115,58 @@ exports.LoginUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const userIds = req.id;
-    const updateData = req.body.emailAddress;
+    const { emailAddress } = req.body;
 
-    console.log(userIds, updateData);
-    console.log("validating ");
-    const ValidateUserData = await userUpdateValidation(updateData);
-    console.log("after validating ");
-    if (ValidateUserData) {
+    // console.log("User ID:", userIds);
+    // console.log("New Email Address:", emailAddress);
+
+    const validationError = await userUpdateValidation(emailAddress);
+    if (validationError) {
       return res.status(400).json({ message: validationError });
     }
-    const finduser = await User.findOne({
+
+    const findUser = await User.findOne({
       where: {
         id: userIds,
       },
     });
 
-    if (finduser) {
-      const user = await User.update(updateData, {
+    if (!findUser) {
+      return res.status(401).json({
+        message: "User Does Not Exist",
+      });
+    }
+
+    const updatedUser = await User.update(
+      { emailAddress },
+      {
+        where: {
+          id: userIds,
+        },
+      }
+    );
+
+    if (updatedUser) {
+      const updatedUser = await User.findOne({
         where: {
           id: userIds,
         },
       });
-      res.status(200).json({
+
+      return res.status(200).json({
         message: "User updated successfully",
-        data: finditem,
+        Name: updatedUser.Name,
+        data: updatedUser.emailAddress,
       });
     } else {
-      res.status(401).json({
-        message: "User Does Not Exist",
+      return res.status(500).json({
+        message: "Failed to update user",
       });
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
 };
