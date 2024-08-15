@@ -387,11 +387,12 @@ exports.verifyOTP = async (req, res) => {
   try {
     const userId = req.id;
     const { emailAddress, otp } = req.body;
-    // const checkOTP = validateOTP(req.body);
+    // const checkOTP = await validateOTP(req.body);
 
-    // if (!checkOTP) {
-    //   return res.status(400).json({ message: "Enter All Fields" });
-    // }
+    // // console.log(checkOTP);
+    // // if (!checkOTP) {
+    // //   return res.status(400).json({ message: "Enter All Fields" });
+    // // }
 
     const findUser = await User.findOne({ where: { id: userId } });
 
@@ -400,6 +401,24 @@ exports.verifyOTP = async (req, res) => {
     }
 
     const userotp = findUser.otp;
+    const createdAt = findUser.createdAt;
+
+    if (!userotp) {
+      return res.status(400).json({ message: "OTP not found" });
+    }
+
+    const currentTime = new Date();
+    const otpCreationTime = new Date(createdAt);
+    const timeDifference = (currentTime - otpCreationTime) / 1000;
+
+    console.log(currentTime);
+    console.log(otpCreationTime);
+    console.log(timeDifference);
+
+    if (timeDifference > 120) {
+      return res.status(400).json({ message: "OTP has expired" });
+    }
+
     var bytes = CryptoJS.AES.decrypt(userotp, userdetails.SECRET);
 
     var originalOTP = bytes.toString(CryptoJS.enc.Utf8);
