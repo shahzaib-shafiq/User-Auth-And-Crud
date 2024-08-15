@@ -7,6 +7,7 @@ const userdetails = require("../Config/config");
 const generator = require("generate-password");
 const otpGenerator = require("otp-generator");
 const OTP = require("../Models/OTPModel");
+const CryptoJS = require("crypto-js");
 app.use(express.json());
 const {
   userInputValidation,
@@ -343,23 +344,27 @@ exports.sendOTP = async (req, res) => {
       specialChars: false,
     });
 
-    console.log(otp);
+    // await transporter.sendMail({
+    //   from: userdetails.EMAIL,
+    //   to: emailAddress,
+    //   subject: "Your New OTP",
+    //   html: `<p>Your new OTP is: <strong>${otp}</strong></p>`,
+    // });
 
-    const otpPayload = { emailAddress, otp };
-    const otpBody = await OTP.create(otpPayload);
+    var cipherotp = CryptoJS.AES.encrypt(otp, userdetails.SECRET).toString();
 
-    console.log(otpBody);
+    const saveotp = await User.update(
+      { otp: cipherotp },
+      { where: { id: userId } }
+    );
 
-    await transporter.sendMail({
-      from: userdetails.EMAIL,
-      to: emailAddress,
-      subject: "Your New OTP",
-      html: `<p>Your new OTP is: <strong>${otp}</strong></p>`,
-    });
+    console.log(cipherotp);
+
+    console.log(saveotp);
 
     // res.status(200).json({ message: "New OTP sent to your email" });
 
-    if (otpBody) {
+    if (saveotp) {
       res.status(200).json({
         success: true,
         message: "OTP sent successfully",
@@ -369,9 +374,10 @@ exports.sendOTP = async (req, res) => {
       res.status(200).json({
         success: false,
         message: "Error in Sending OTP",
+        otp,
       });
     }
   } catch (error) {
-    res.status(500).json({ message: "Error sending  OTP" });
+    res.status(500).json({ message: "OTP Sending Falied" });
   }
 };
