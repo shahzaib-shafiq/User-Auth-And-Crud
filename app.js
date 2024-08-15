@@ -4,7 +4,16 @@ const jwt = require("jsonwebtoken");
 const morgan = require("morgan");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
+const app = express();
+const path = require("path");
+app.use(express.static("uploads"));
 
+app.use("/uploads", express.static("uploads"));
+//app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
+app.use(
+  "/public/uploads",
+  express.static(path.join(__dirname, "/public/uploads"))
+);
 // const { dbConnection } = require("./Config/mySql");
 const { SERVER_PORT } = require("./Config/config");
 const Users = require("./Routes/user_route");
@@ -13,7 +22,7 @@ const Items = require("./Routes/item_route");
 const dbConnection = require("./Config/db_connection");
 const associations = require("./Models/user_items_associations");
 // Creating an Express application instance
-const app = express();
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));

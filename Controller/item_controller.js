@@ -11,30 +11,43 @@ exports.addItem = async (req, res) => {
     const userId = req.id;
     const { name, description, price, quantity } = req.body;
 
-    let filepath = null;
+    let imageUrl = null;
+
     if (req.file) {
+      const uploadDir = path.join(__dirname, "../public/uploads");
+
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
       const fileExtension = path.extname(req.file.originalname);
       const originalName = path.basename(req.file.originalname, fileExtension);
-      const newFilename = `${originalName}${fileExtension}`;
-      filepath = path.join("uploads", newFilename);
-      fs.renameSync(req.file.path, filepath);
+      const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+      const tempPath = req.file.path;
+      const targetPath = path.join(uploadDir, newFilename);
+      fs.renameSync(tempPath, targetPath);
+      imageUrl = `/public/uploads/${newFilename}`;
     }
 
+    // Item details
     const itemDetails = {
       name,
       description,
       price,
       quantity,
       userId,
-      image_url: filepath,
+      image_url: imageUrl,
     };
 
+    // Create the item in the database
     const item = await Item.create(itemDetails);
 
+    // Respond with success
     if (item) {
       res.status(201).json({
         message: "Item added successfully",
         item,
+        image_url: `${req.protocol}://${req.get("host")}${imageUrl}`,
       });
     } else {
       res.status(500).json({
