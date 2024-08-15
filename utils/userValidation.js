@@ -79,5 +79,16 @@ exports.validatePassword = async (userpass) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  return true;
+  exports.validateOTP = async (userdata) => {
+    console.log("============");
+    const { emailAddress, otp } = userdata;
+
+    console.log(userdata);
+
+    if (!emailAddress || !otp) {
+      return false;
+    }
+
+    return true;
+  };
 };

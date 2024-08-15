@@ -12,6 +12,7 @@ const {
   deleteUserById,
   forgotPassword,
   sendOTP,
+  verifyOTP,
 } = require("../Controller/user_controller");
 const { verifyToken } = require("../middleware/authentication");
 
@@ -24,5 +25,6 @@ router.get("/fetchUserById/:id", verifyToken, fetchUserById);
 router.delete("/deleteUserById/:id", verifyToken, deleteUserById);
 router.patch("/forgotPassword/:id", verifyToken, forgotPassword);
 router.post("/sendOTP/:id", verifyToken, sendOTP);
+router.post("/verifyOTP/:id", verifyToken, verifyOTP);
 
 module.exports = router;

@@ -14,6 +14,7 @@ const {
   userLoginValidation,
   userUpdateValidation,
   validatePassword,
+  validateOTP,
 } = require("../utils/userValidation");
 const { use } = require("../Routes/user_route");
 const { where } = require("sequelize");
@@ -344,12 +345,12 @@ exports.sendOTP = async (req, res) => {
       specialChars: false,
     });
 
-    // await transporter.sendMail({
-    //   from: userdetails.EMAIL,
-    //   to: emailAddress,
-    //   subject: "Your New OTP",
-    //   html: `<p>Your new OTP is: <strong>${otp}</strong></p>`,
-    // });
+    await transporter.sendMail({
+      from: userdetails.EMAIL,
+      to: emailAddress,
+      subject: "Your New OTP",
+      html: `<p>Your new OTP is: <strong>${otp}</strong></p>`,
+    });
 
     var cipherotp = CryptoJS.AES.encrypt(otp, userdetails.SECRET).toString();
 
@@ -379,5 +380,38 @@ exports.sendOTP = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: "OTP Sending Falied" });
+  }
+};
+
+exports.verifyOTP = async (req, res) => {
+  try {
+    const userId = req.id;
+    const { emailAddress, otp } = req.body;
+    // const checkOTP = validateOTP(req.body);
+
+    // if (!checkOTP) {
+    //   return res.status(400).json({ message: "Enter All Fields" });
+    // }
+
+    const findUser = await User.findOne({ where: { id: userId } });
+
+    if (!findUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userotp = findUser.otp;
+    var bytes = CryptoJS.AES.decrypt(userotp, userdetails.SECRET);
+
+    var originalOTP = bytes.toString(CryptoJS.enc.Utf8);
+
+    console.log(originalOTP);
+
+    if (otp === originalOTP) {
+      res.status(200).json({ message: "OTP Matched successfully" });
+    } else {
+      res.status(200).json({ message: "Incorrect OTP" });
+    }
+  } catch (error) {
+    res.status(200).json({ message: "Failed OTP" });
   }
 };

@@ -6,14 +6,7 @@ const OTP = sequelize.define("otp", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  otp: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW, // Automatically set to the current time
-  },
+
   expiresAt: {
     type: DataTypes.DATE,
     allowNull: false,
