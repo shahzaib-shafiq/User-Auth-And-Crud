@@ -168,27 +168,34 @@ exports.updateItem = async (req, res) => {
   try {
     const itemId = req.params.id;
     const userIds = req.id;
-
     const updateData = req.body;
-
     const { name, description, price, quantity } = req.body;
+    let imageUrl = null;
 
-    let filepath = null;
     if (req.file) {
+      const uploadDir = path.join(__dirname, "../public/uploads");
+
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
       const fileExtension = path.extname(req.file.originalname);
       const originalName = path.basename(req.file.originalname, fileExtension);
-      const newFilename = `${originalName}${fileExtension}`;
-      filepath = path.join("uploads", newFilename);
-      fs.renameSync(req.file.path, filepath);
+      const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+      const tempPath = req.file.path;
+      const targetPath = path.join(uploadDir, newFilename);
+      fs.renameSync(tempPath, targetPath);
+      imageUrl = `/public/uploads/${newFilename}`;
     }
 
+    // Item details
     const itemDetails = {
       name,
       description,
       price,
       quantity,
       userIds,
-      image_url: filepath,
+      image_url: imageUrl,
     };
 
     const finditem = await Item.findOne({
