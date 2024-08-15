@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const app = express();
 const userdetails = require("../Config/config");
 const generator = require("generate-password");
+const otpGenerator = require("otp-generator");
+const OTP = require("../Models/OTPModel");
 app.use(express.json());
 const {
   userInputValidation,
@@ -314,5 +316,62 @@ exports.forgotPassword = async (req, res) => {
   } catch (error) {
     console.error("Error sending new password:", error);
     res.status(500).json({ message: "Error sending new password" });
+  }
+};
+
+exports.sendOTP = async (req, res) => {
+  try {
+    console.log("=================");
+    const userId = req.id;
+
+    const { emailAddress } = req.body;
+
+    const validationError = userUpdateValidation(req.body);
+
+    if (!validationError) {
+      return res.status(400).json({ message: "Enter Email" });
+    }
+    const findUser = await User.findOne({ where: { id: userId } });
+
+    if (!findUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    let otp = otpGenerator.generate(4, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    console.log(otp);
+
+    const otpPayload = { emailAddress, otp };
+    const otpBody = await OTP.create(otpPayload);
+
+    console.log(otpBody);
+
+    await transporter.sendMail({
+      from: userdetails.EMAIL,
+      to: emailAddress,
+      subject: "Your New OTP",
+      html: `<p>Your new OTP is: <strong>${otp}</strong></p>`,
+    });
+
+    // res.status(200).json({ message: "New OTP sent to your email" });
+
+    if (otpBody) {
+      res.status(200).json({
+        success: true,
+        message: "OTP sent successfully",
+        otp,
+      });
+    } else {
+      res.status(200).json({
+        success: false,
+        message: "Error in Sending OTP",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error sending  OTP" });
   }
 };

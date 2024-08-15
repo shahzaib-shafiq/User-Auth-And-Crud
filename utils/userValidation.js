@@ -69,7 +69,7 @@ exports.userUpdateValidation = async (userdata) => {
     return "Enter a valid email address";
   }
 
-  return null;
+  return true;
 };
 
 exports.validatePassword = async (userpass) => {
