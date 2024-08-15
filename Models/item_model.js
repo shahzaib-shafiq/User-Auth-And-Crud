@@ -27,6 +27,10 @@ const Item = sequelize.define("item", {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: "users",
+      key: "user_id",
+    },
   },
   image_url: {
     type: DataTypes.STRING,

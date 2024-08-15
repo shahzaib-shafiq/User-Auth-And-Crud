@@ -354,8 +354,12 @@ exports.sendOTP = async (req, res) => {
 
     var cipherotp = CryptoJS.AES.encrypt(otp, userdetails.SECRET).toString();
 
+    Time = new Date();
     const saveotp = await User.update(
-      { otp: cipherotp },
+      {
+        otpStartTime: Time,
+        otp: cipherotp,
+      },
       { where: { id: userId } }
     );
 
@@ -401,22 +405,10 @@ exports.verifyOTP = async (req, res) => {
     }
 
     const userotp = findUser.otp;
-    const createdAt = findUser.createdAt;
+    const createdAt = findUser.otpStartTime;
 
     if (!userotp) {
       return res.status(400).json({ message: "OTP not found" });
-    }
-
-    const currentTime = new Date();
-    const otpCreationTime = new Date(createdAt);
-    const timeDifference = (currentTime - otpCreationTime) / 1000;
-
-    console.log(currentTime);
-    console.log(otpCreationTime);
-    console.log(timeDifference);
-
-    if (timeDifference > 120) {
-      return res.status(400).json({ message: "OTP has expired" });
     }
 
     var bytes = CryptoJS.AES.decrypt(userotp, userdetails.SECRET);
@@ -426,6 +418,20 @@ exports.verifyOTP = async (req, res) => {
     console.log(originalOTP);
 
     if (otp === originalOTP) {
+      const currentTime = new Date();
+      const otpCreationTime = createdAt;
+      const timeDifference = (currentTime - otpCreationTime) / 1000;
+      // let ss = Math.floor(timeDifference / 1000) % 60;
+      // let mm = Math.floor(timeDifference / 1000 / 60) % 60;
+
+      console.log("currentTime-------------------", currentTime);
+      console.log("otpCreationTime-------------------", otpCreationTime);
+      console.log("timeDifference--------------------", timeDifference);
+
+      if (timeDifference > 120) {
+        return res.status(400).json({ message: "OTP has expired" });
+      }
+
       res.status(200).json({ message: "OTP Matched successfully" });
     } else {
       res.status(200).json({ message: "Incorrect OTP" });
