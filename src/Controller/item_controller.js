@@ -231,33 +231,32 @@ exports.addItem = async (req, res) => {
 
 exports.multipleImagesItem = async (req, res) => {
   try {
-    const images = req.files;
+    const files = req.files;
     //console.log(images);
     const userId = req.id;
     const { name, description, price, quantity } = req.body;
-    const imageUrls = [];
 
-    if (!images) {
+    if (!files) {
       return res.status(400).json({
         error: "No images uploaded",
       });
     }
 
-    if (req.file) {
-      const uploadDir = path.join(__dirname, "../public/uploads");
+    // if (req.file) {
+    //   const uploadDir = path.join(__dirname, "../public/uploads");
 
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
+    //   if (!fs.existsSync(uploadDir)) {
+    //     fs.mkdirSync(uploadDir, { recursive: true });
+    //   }
 
-      const fileExtension = path.extname(req.file.originalname);
-      const originalName = path.basename(req.file.originalname, fileExtension);
-      const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
-      const tempPath = req.file.path;
-      const targetPath = path.join(uploadDir, newFilename);
-      fs.renameSync(tempPath, targetPath);
-      imageUrls = `/public/uploads/${newFilename}`;
-    }
+    //   const fileExtension = path.extname(req.file.originalname);
+    //   const originalName = path.basename(req.file.originalname, fileExtension);
+    //   const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+    //   const tempPath = req.file.path;
+    //   const targetPath = path.join(uploadDir, newFilename);
+    //   fs.renameSync(tempPath, targetPath);
+    //   imageUrls = `/public/uploads/${newFilename}`;
+    // }
 
     const itemDetails = {
       name,
@@ -269,12 +268,39 @@ exports.multipleImagesItem = async (req, res) => {
 
     const item = await Item.create(itemDetails);
 
-    if (imageUrls.length > 0) {
-      for (const url of imageUrls) {
+    // if (imageUrls.length > 0) {
+    //   for (const url of imageUrls) {
+    //     await MultipleImageItems.create({
+    //       image_name: path.basename(url),
+    //       ItemId: item.id,
+    //       image_url: url,
+    //     });
+    //   }
+    // }
+
+    let imageUrls = [];
+
+    if (req.file) {
+      const uploadDir = path.join(__dirname, "../public/uploads");
+
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      for (const file of files) {
+        const fileExtension = path.extname(file.originalname);
+        const originalName = path.basename(file.originalname, fileExtension);
+        const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+        const tempPath = file.path;
+        const targetPath = path.join(uploadDir, newFilename);
+        fs.renameSync(tempPath, targetPath);
+        const imageUrl = `/public/uploads/${newFilename}`;
+        imageUrls.push(imageUrl);
+
+        // Save image URL in ItemImages table
         await MultipleImageItems.create({
-          image_name: path.basename(url),
           ItemId: item.id,
-          image_url: url,
+          image_url: imageUrl,
         });
       }
     }
