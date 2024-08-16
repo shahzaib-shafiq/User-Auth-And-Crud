@@ -232,7 +232,7 @@ exports.addItem = async (req, res) => {
 exports.multipleImagesItem = async (req, res) => {
   try {
     const images = req.files;
-    console.log(images);
+    //console.log(images);
     const userId = req.id;
     const { name, description, price, quantity } = req.body;
     const imageUrls = [];
@@ -243,28 +243,21 @@ exports.multipleImagesItem = async (req, res) => {
       });
     }
 
-    if (req.files) {
-      const uploadDir = path.join(__dirname, "./public/uploads");
+    if (req.file) {
+      const uploadDir = path.join(__dirname, "../public/uploads");
 
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
 
-      for (const file of req.files) {
-        const fileExtension = path.extname(file.originalname);
-        const originalName = path.basename(file.originalname, fileExtension);
-        const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
-        const tempPath = file.path;
-        const targetPath = path.join(uploadDir, newFilename);
-
-        fs.renameSync(tempPath, targetPath);
-
-        const imageUrl = `/public/uploads/${newFilename}`;
-        imageUrls.push(imageUrl);
-      }
+      const fileExtension = path.extname(req.file.originalname);
+      const originalName = path.basename(req.file.originalname, fileExtension);
+      const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+      const tempPath = req.file.path;
+      const targetPath = path.join(uploadDir, newFilename);
+      fs.renameSync(tempPath, targetPath);
+      imageUrls = `/public/uploads/${newFilename}`;
     }
-
-    console.log("------------------------", imageUrls);
 
     const itemDetails = {
       name,
@@ -279,9 +272,9 @@ exports.multipleImagesItem = async (req, res) => {
     if (imageUrls.length > 0) {
       for (const url of imageUrls) {
         await MultipleImageItems.create({
-          imageName: path.basename(url),
+          image_name: path.basename(url),
           ItemId: item.id,
-          imageUrl: url,
+          image_url: url,
         });
       }
     }
