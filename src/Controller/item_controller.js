@@ -4,6 +4,7 @@ const MultipleImageItems = require("../Models/Images_model");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { where } = require("sequelize");
 require("../Models/user_items_associations");
 
 exports.getItemsbyId = async (req, res) => {
@@ -231,7 +232,7 @@ exports.addItem = async (req, res) => {
 
 exports.multipleImagesItem = async (req, res) => {
   try {
-    const files = req.files; // Files should be accessed as req.files if using multer for multiple file uploads
+    const files = req.files;
     const userId = req.id;
     const { name, description, price, quantity } = req.body;
 
@@ -259,7 +260,6 @@ exports.multipleImagesItem = async (req, res) => {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    // Process each file
     for (const file of files) {
       const fileExtension = path.extname(file.originalname);
       const originalName = path.basename(file.originalname, fileExtension);
@@ -267,6 +267,7 @@ exports.multipleImagesItem = async (req, res) => {
       const tempPath = file.path;
       const targetPath = path.join(uploadDir, newFilename);
 
+      console.log("----------------------------------------", newFilename);
       fs.renameSync(tempPath, targetPath);
 
       // Create image URL
@@ -274,6 +275,7 @@ exports.multipleImagesItem = async (req, res) => {
 
       // Save image URL in ItemImages table
       await MultipleImageItems.create({
+        name: newFilename,
         ItemId: item.id,
         image_url: imageUrl,
       });
@@ -294,73 +296,111 @@ exports.multipleImagesItem = async (req, res) => {
   }
 };
 
-// exports.multipleImagesItem = async (req, res) => {
-//   try {
-//     const files = req.files;
-//     //console.log(images);
-//     const userId = req.id;
-//     const { name, description, price, quantity } = req.body;
+exports.getAllItemImages = async (req, res) => {
+  try {
+    const userIds = req.id;
+    const item = await MultipleImageItems.findAll({});
+    if (item) {
+      res.status(200).json({
+        message: "Item retrieved successfully",
+        data: item,
+      });
+    } else {
+      res.status(401).json({
+        message: "No Item in your Bucket",
+        data: item,
+      });
+    }
+  } catch (error) {
+    console.error("Error in Fetching Items", error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
-//     if (!files) {
-//       return res.status(400).json({
-//         error: "No images uploaded",
-//       });
-//     }
+exports.updateItemImages = async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    const files = req.files;
+    const userIds = req.id;
 
-//     const itemDetails = {
-//       name,
-//       description,
-//       price,
-//       quantity,
-//       userId,
-//     };
+    const { name, description, price, quantity } = req.body;
 
-//     const item = await Item.create(itemDetails);
+    if (!files || files.length === 0) {
+      return res.status(400).json({
+        error: "No images uploaded",
+      });
+    }
 
-//     console.log(item);
-//     const imageUrl = "";
+    const itemDetails = {
+      name,
+      description,
+      price,
+      quantity,
+      userIds,
+    };
 
-//     if (req.file) {
-//       const uploadDir = path.join(__dirname, "../public/uploads");
+    /////
+    const finditem = await Item.findOne({
+      where: {
+        id: itemId,
+        userId: userIds,
+      },
+    });
+    console.log(finditem);
+    if (finditem) {
+      const item = await Item.update(itemDetails, {
+        where: {
+          id: itemId,
+          userId: userIds,
+        },
+      });
 
-//       if (!fs.existsSync(uploadDir)) {
-//         fs.mkdirSync(uploadDir, { recursive: true });
-//       }
+      const uploadDir = path.join(__dirname, "../public/uploads");
 
-//       for (const file of files) {
-//         const fileExtension = path.extname(req.file.originalname);
-//         const originalName = path.basename(
-//           req.file.originalname,
-//           fileExtension
-//         );
-//         const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
-//         const tempPath = req.file.path;
-//         const targetPath = path.join(uploadDir, newFilename);
-//         fs.renameSync(tempPath, targetPath);
-//         imageUrl = `/public/uploads/${newFilename}`;
-//         /////
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
 
-//         // Save image URL in ItemImages table
-//         await MultipleImageItems.create({
-//           ItemId: item.id,
-//           image_url: imageUrl,
-//         });
+      for (const file of files) {
+        const fileExtension = path.extname(file.originalname);
+        const originalName = path.basename(file.originalname, fileExtension);
+        const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+        const tempPath = file.path;
+        const targetPath = path.join(uploadDir, newFilename);
+        fs.renameSync(tempPath, targetPath);
 
-//         console.log(
-//           "---------------------------------------------loop----------------"
-//         );
-//       }
-//     }
+        const imageUrl = `/uploads/${newFilename}`;
 
-//     res.status(201).json({
-//       message: "Item added successfully",
-//       item,
-//     });
-//   } catch (error) {
-//     console.error("Error adding item:", error);
-//     res.status(500).json({
-//       message: "An error occurred while adding the item",
-//       error: error.message,
-//     });
-//   }
-// };
+        await MultipleImageItems.update(
+          {
+            name: newFilename,
+            ItemId: item.id,
+            image_url: imageUrl,
+          },
+          {
+            where: {
+              id: itemId,
+            },
+          }
+        );
+      }
+
+      res.status(201).json({
+        message: "Item Updated successfully",
+        item,
+      });
+    } else {
+      res.status(401).json({
+        message: "Item Does Not Exist",
+      });
+    }
+  } catch (error) {
+    console.error("Error adding item:", error);
+    res.status(500).json({
+      message: "An error occurred while adding the item",
+      error: error.message,
+    });
+  }
+};

@@ -37,6 +37,10 @@ const ItemImages = sequelize.define("ItemImages", {
     autoIncrement: true,
     primaryKey: true,
   },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   ItemId: {
     type: DataTypes.INTEGER,
     references: {
