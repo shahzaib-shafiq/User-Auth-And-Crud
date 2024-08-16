@@ -231,32 +231,15 @@ exports.addItem = async (req, res) => {
 
 exports.multipleImagesItem = async (req, res) => {
   try {
-    const files = req.files;
-    //console.log(images);
+    const files = req.files; // Files should be accessed as req.files if using multer for multiple file uploads
     const userId = req.id;
     const { name, description, price, quantity } = req.body;
 
-    if (!files) {
+    if (!files || files.length === 0) {
       return res.status(400).json({
         error: "No images uploaded",
       });
     }
-
-    // if (req.file) {
-    //   const uploadDir = path.join(__dirname, "../public/uploads");
-
-    //   if (!fs.existsSync(uploadDir)) {
-    //     fs.mkdirSync(uploadDir, { recursive: true });
-    //   }
-
-    //   const fileExtension = path.extname(req.file.originalname);
-    //   const originalName = path.basename(req.file.originalname, fileExtension);
-    //   const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
-    //   const tempPath = req.file.path;
-    //   const targetPath = path.join(uploadDir, newFilename);
-    //   fs.renameSync(tempPath, targetPath);
-    //   imageUrls = `/public/uploads/${newFilename}`;
-    // }
 
     const itemDetails = {
       name,
@@ -266,43 +249,36 @@ exports.multipleImagesItem = async (req, res) => {
       userId,
     };
 
+    // Create a new item
     const item = await Item.create(itemDetails);
+    console.log(item);
 
-    // if (imageUrls.length > 0) {
-    //   for (const url of imageUrls) {
-    //     await MultipleImageItems.create({
-    //       image_name: path.basename(url),
-    //       ItemId: item.id,
-    //       image_url: url,
-    //     });
-    //   }
-    // }
+    const uploadDir = path.join(__dirname, "../public/uploads");
 
-    let imageUrls = [];
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
-    if (req.file) {
-      const uploadDir = path.join(__dirname, "../public/uploads");
+    // Process each file
+    for (const file of files) {
+      const fileExtension = path.extname(file.originalname);
+      const originalName = path.basename(file.originalname, fileExtension);
+      const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+      const tempPath = file.path;
+      const targetPath = path.join(uploadDir, newFilename);
 
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
+      fs.renameSync(tempPath, targetPath);
 
-      for (const file of files) {
-        const fileExtension = path.extname(file.originalname);
-        const originalName = path.basename(file.originalname, fileExtension);
-        const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
-        const tempPath = file.path;
-        const targetPath = path.join(uploadDir, newFilename);
-        fs.renameSync(tempPath, targetPath);
-        const imageUrl = `/public/uploads/${newFilename}`;
-        imageUrls.push(imageUrl);
+      // Create image URL
+      const imageUrl = `/uploads/${newFilename}`;
 
-        // Save image URL in ItemImages table
-        await MultipleImageItems.create({
-          ItemId: item.id,
-          image_url: imageUrl,
-        });
-      }
+      // Save image URL in ItemImages table
+      await MultipleImageItems.create({
+        ItemId: item.id,
+        image_url: imageUrl,
+      });
+
+      console.log("Image URL stored:", imageUrl);
     }
 
     res.status(201).json({
@@ -317,3 +293,74 @@ exports.multipleImagesItem = async (req, res) => {
     });
   }
 };
+
+// exports.multipleImagesItem = async (req, res) => {
+//   try {
+//     const files = req.files;
+//     //console.log(images);
+//     const userId = req.id;
+//     const { name, description, price, quantity } = req.body;
+
+//     if (!files) {
+//       return res.status(400).json({
+//         error: "No images uploaded",
+//       });
+//     }
+
+//     const itemDetails = {
+//       name,
+//       description,
+//       price,
+//       quantity,
+//       userId,
+//     };
+
+//     const item = await Item.create(itemDetails);
+
+//     console.log(item);
+//     const imageUrl = "";
+
+//     if (req.file) {
+//       const uploadDir = path.join(__dirname, "../public/uploads");
+
+//       if (!fs.existsSync(uploadDir)) {
+//         fs.mkdirSync(uploadDir, { recursive: true });
+//       }
+
+//       for (const file of files) {
+//         const fileExtension = path.extname(req.file.originalname);
+//         const originalName = path.basename(
+//           req.file.originalname,
+//           fileExtension
+//         );
+//         const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+//         const tempPath = req.file.path;
+//         const targetPath = path.join(uploadDir, newFilename);
+//         fs.renameSync(tempPath, targetPath);
+//         imageUrl = `/public/uploads/${newFilename}`;
+//         /////
+
+//         // Save image URL in ItemImages table
+//         await MultipleImageItems.create({
+//           ItemId: item.id,
+//           image_url: imageUrl,
+//         });
+
+//         console.log(
+//           "---------------------------------------------loop----------------"
+//         );
+//       }
+//     }
+
+//     res.status(201).json({
+//       message: "Item added successfully",
+//       item,
+//     });
+//   } catch (error) {
+//     console.error("Error adding item:", error);
+//     res.status(500).json({
+//       message: "An error occurred while adding the item",
+//       error: error.message,
+//     });
+//   }
+// };
