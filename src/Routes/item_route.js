@@ -8,14 +8,13 @@ const {
   deleteItem,
   updateItem,
   multipleImagesItem,
-  getAllItemImages,
+
   updateItemImages,
 } = require("../Controller/item_controller");
 const { verifyToken } = require("../middleware/authentication");
 
 router.post("/additem/", verifyToken, upload.single("file"), addItem);
 router.get("/getallitems", verifyToken, getAllItems);
-router.get("/getAllItemImages", verifyToken, getAllItemImages);
 
 router.get("/getitem/:id", verifyToken, getItemsbyId);
 router.delete("/deleteitem/:id", verifyToken, deleteItem);

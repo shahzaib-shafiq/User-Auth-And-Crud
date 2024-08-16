@@ -296,29 +296,6 @@ exports.multipleImagesItem = async (req, res) => {
   }
 };
 
-exports.getAllItemImages = async (req, res) => {
-  try {
-    const userIds = req.id;
-    const item = await MultipleImageItems.findAll({});
-    if (item) {
-      res.status(200).json({
-        message: "Item retrieved successfully",
-        data: item,
-      });
-    } else {
-      res.status(401).json({
-        message: "No Item in your Bucket",
-        data: item,
-      });
-    }
-  } catch (error) {
-    console.error("Error in Fetching Items", error);
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
 exports.updateItemImages = async (req, res) => {
   try {
     const itemId = req.params.id;
@@ -386,7 +363,6 @@ exports.updateItemImages = async (req, res) => {
           }
         );
       }
-
       res.status(201).json({
         message: "Item Updated successfully",
         item,
