@@ -1,67 +1,10 @@
 const Item = require("../Models/item_model");
 const User = require("../Models/user_model");
+const MultipleImageItems = require("../Models/Images_model");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
 require("../Models/user_items_associations");
-
-exports.addItem = async (req, res) => {
-  try {
-    const userId = req.id;
-    const { name, description, price, quantity } = req.body;
-
-    let imageUrl = null;
-
-    if (req.file) {
-      const uploadDir = path.join(__dirname, "../public/uploads");
-
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      const fileExtension = path.extname(req.file.originalname);
-      const originalName = path.basename(req.file.originalname, fileExtension);
-      const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
-      const tempPath = req.file.path;
-      const targetPath = path.join(uploadDir, newFilename);
-      fs.renameSync(tempPath, targetPath);
-      imageUrl = `/public/uploads/${newFilename}`;
-    }
-
-    // Item details
-    const itemDetails = {
-      name,
-      description,
-      price,
-      quantity,
-      userId,
-      image_url: imageUrl,
-    };
-
-    // Create the item in the database
-    const item = await Item.create(itemDetails);
-
-    // Respond with success
-    if (item) {
-      res.status(201).json({
-        message: "Item added successfully",
-        item,
-        image_url: `${req.protocol}://${req.get("host")}${imageUrl}`,
-      });
-    } else {
-      res.status(500).json({
-        message: "Unable to add item to database",
-      });
-    }
-  } catch (error) {
-    console.error("Error adding item:", error);
-    res.status(500).json({
-      message: "An error occurred while adding the item",
-      error: error.message,
-    });
-  }
-};
 
 exports.getItemsbyId = async (req, res) => {
   const userIds = req.id;
@@ -225,6 +168,133 @@ exports.updateItem = async (req, res) => {
     console.error("Error in Updating Item", error);
     res.status(500).json({
       message: error.message,
+    });
+  }
+};
+
+exports.addItem = async (req, res) => {
+  try {
+    const userId = req.id;
+    const { name, description, price, quantity } = req.body;
+
+    let imageUrl = null;
+
+    if (req.file) {
+      const uploadDir = path.join(__dirname, "../public/uploads");
+
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const fileExtension = path.extname(req.file.originalname);
+      const originalName = path.basename(req.file.originalname, fileExtension);
+      const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+      const tempPath = req.file.path;
+      const targetPath = path.join(uploadDir, newFilename);
+      fs.renameSync(tempPath, targetPath);
+      imageUrl = `/public/uploads/${newFilename}`;
+    }
+
+    // Item details
+    const itemDetails = {
+      name,
+      description,
+      price,
+      quantity,
+      userId,
+      image_url: imageUrl,
+    };
+
+    // Create the item in the database
+    const item = await Item.create(itemDetails);
+
+    // Respond with success
+    if (item) {
+      res.status(201).json({
+        message: "Item added successfully",
+        item,
+        image_url: `${req.protocol}://${req.get("host")}${imageUrl}`,
+      });
+    } else {
+      res.status(500).json({
+        message: "Unable to add item to database",
+      });
+    }
+  } catch (error) {
+    console.error("Error adding item:", error);
+    res.status(500).json({
+      message: "An error occurred while adding the item",
+      error: error.message,
+    });
+  }
+};
+
+exports.multipleImagesItem = async (req, res) => {
+  try {
+    const images = req.files;
+    console.log(images);
+    const userId = req.id;
+    const { name, description, price, quantity } = req.body;
+    const imageUrls = [];
+
+    if (!images) {
+      return res.status(400).json({
+        error: "No images uploaded",
+      });
+    }
+
+    if (req.files) {
+      const uploadDir = path.join(__dirname, "./public/uploads");
+
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      for (const file of req.files) {
+        const fileExtension = path.extname(file.originalname);
+        const originalName = path.basename(file.originalname, fileExtension);
+        const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+        const tempPath = file.path;
+        const targetPath = path.join(uploadDir, newFilename);
+
+        fs.renameSync(tempPath, targetPath);
+
+        const imageUrl = `/public/uploads/${newFilename}`;
+        imageUrls.push(imageUrl);
+      }
+    }
+
+    console.log("------------------------", imageUrls);
+
+    const itemDetails = {
+      name,
+      description,
+      price,
+      quantity,
+      userId,
+    };
+
+    const item = await Item.create(itemDetails);
+
+    if (imageUrls.length > 0) {
+      for (const url of imageUrls) {
+        await MultipleImageItems.create({
+          imageName: path.basename(url),
+          ItemId: item.id,
+          imageUrl: url,
+        });
+      }
+    }
+
+    res.status(201).json({
+      message: "Item added successfully",
+      item,
+    });
+  } catch (error) {
+    console.error("Error adding item:", error);
+    res.status(500).json({
+      message: "An error occurred while adding the item",
+      error: error.message,
     });
   }
 };

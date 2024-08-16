@@ -25,16 +25,16 @@ const User = sequelize.define("user", {
 });
 
 // Sync the model with the database, checking if the table already exists
-User.sync({ alter: true }) // you can use force true instead of alter to drop the table and create new
-  .then((result) => {
-    if (result.changed) {
-      console.log("Admin table updated successfully.");
-    } else {
-      console.log("Admin table already exists and is up to date.");
-    }
-  })
-  .catch((err) => {
-    console.error("Error synchronizing Admin table:", err);
-  });
+// User.sync({ alter: true }) // you can use force true instead of alter to drop the table and create new
+//   .then((result) => {
+//     if (result.changed) {
+//       console.log("Admin table updated successfully.");
+//     } else {
+//       console.log("Admin table already exists and is up to date.");
+//     }
+//   })
+//   .catch((err) => {
+//     console.error("Error synchronizing Admin table:", err);
+//   });
 
 module.exports = User;

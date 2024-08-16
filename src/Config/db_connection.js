@@ -1,4 +1,4 @@
-const Item = require("../Models/item_model");
+const Item = require("../Models/Images_model");
 const User = require("../Models/user_model");
 const { sequelize } = require("./mySql");
 
