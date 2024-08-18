@@ -379,9 +379,9 @@ exports.updateItemImages = async (req, res) => {
 
     const uploadDir = path.join(__dirname, "../public/uploads");
 
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    // if (!fs.existsSync(uploadDir)) {
+    //   fs.mkdirSync(uploadDir, { recursive: true });
+    // }
 
     const newImageIds = [];
     for (const file of files) {
@@ -412,14 +412,6 @@ exports.updateItemImages = async (req, res) => {
       }
     }
 
-    // Step 3: Handle deletions if needed
-    // if (ImageIds.length > 0) {
-    //   await MultipleImageItems.destroy({
-    //     where: {
-    //       id: ImageIds,
-    //     },
-    //   });
-    // }
     if (ImageIds.length > 0) {
       await MultipleImageItems.destroy({
         where: {
