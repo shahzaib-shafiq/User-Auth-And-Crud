@@ -11,16 +11,16 @@ const associations = async () => {
     await Item.hasOne(User, {
       foreignKey: "userId",
     });
+
+    Item.hasMany(ItemImages, {
+      foreignKey: "ItemId",
+    });
+    ItemImages.belongsTo(Item, {
+      foreignKey: "ItemId",
+    });
   } catch (error) {
     console.log("error");
   }
 };
-
-Item.hasMany(ItemImages, {
-  foreignKey: "ItemId",
-});
-ItemImages.belongsTo(Item, {
-  foreignKey: "ItemId",
-});
 
 module.exports = associations;

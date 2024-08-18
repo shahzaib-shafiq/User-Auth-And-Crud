@@ -12,6 +12,11 @@ const ItemImages = sequelize.define("ItemImages", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  ImageNameId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+
   ItemId: {
     type: DataTypes.INTEGER,
     references: {
