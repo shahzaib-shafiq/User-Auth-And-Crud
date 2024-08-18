@@ -329,13 +329,123 @@ exports.getItemsImages = async (req, res) => {
   }
 };
 
+// exports.updateItemImages = async (req, res) => {
+//   try {
+//     const itemId = req.params.id;
+//     const files = req.files;
+//     const userId = req.id;
+
+//     const ImageIds = req.body.ImageIds;
+
+//     const { name, description, price, quantity } = req.body;
+
+//     if (!files || files.length === 0) {
+//       return res.status(400).json({
+//         error: "No images uploaded",
+//       });
+//     }
+
+//     const itemDetails = {
+//       name,
+//       description,
+//       price,
+//       quantity,
+//       userId,
+//     };
+
+//     const findItem = await Item.findOne({
+//       where: {
+//         id: itemId,
+//         userId,
+//       },
+//     });
+
+//     console.log(findItem);
+
+//     if (!findItem) {
+//       return res.status(401).json({
+//         message: "Item does not exist",
+//       });
+//     }
+
+//     await Item.update(itemDetails, {
+//       where: {
+//         id: itemId,
+//         userId,
+//       },
+//     });
+
+//     //handle Imgaes Upload
+
+//     const uploadDir = path.join(__dirname, "../public/uploads");
+
+//     if (!fs.existsSync(uploadDir)) {
+//       fs.mkdirSync(uploadDir, { recursive: true });
+//     }
+
+//     const newImageIds = [];
+
+//     for (const file of files) {
+//       const fileExtension = path.extname(file.originalname);
+//       const originalName = path.basename(file.originalname, fileExtension);
+//       const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
+//       const tempPath = file.path;
+//       const targetPath = path.join(uploadDir, newFilename);
+
+//       // Check if the source file exists
+//       if (fs.existsSync(tempPath)) {
+//         fs.renameSync(tempPath, targetPath);
+//       } else {
+//         console.error("Source file does not exist:", tempPath);
+//         throw new Error(`File does not exist at temp path: ${tempPath}`);
+//       }
+
+//       const imageUrl = `/uploads/${newFilename}`;
+//       console.log("----=================================", ImageIds);
+
+//       // Update the image record with the correct where clause
+//       const imageIdToUpdate = ImageIds.shift();
+//       if (imageIdToUpdate) {
+//         const updateItemImages = await MultipleImageItems.update(
+//           {
+//             name: originalName,
+//             ItemId: itemId,
+//             image_url: imageUrl,
+//           },
+//           {
+//             where: { id: imageIdToUpdate },
+//             returning: true, // Return the updated instance
+//           }
+//         );
+//       } else {
+//         console.error("No image ID available for update");
+//       }
+//     }
+
+//     res.status(201).json({
+//       message: "Item and images updated successfully",
+//       item: findItem,
+//     });
+//   } catch (error) {
+//     console.error("Error updating item:", error);
+//     res.status(500).json({
+//       message: "An error occurred while updating the item",
+//       error: error.message,
+//     });
+//   }
+// };
+//////////////////////////
+
+const sequelize = require("../Config/mySql");
+
 exports.updateItemImages = async (req, res) => {
+  const t = await sequelize.transaction();
+
   try {
     const itemId = req.params.id;
     const files = req.files;
     const userId = req.id;
-
-    const ImageIds = req.body.ImageIds;
+    const ImageIds = req.body.ImageIds || []; // IDs of images to be replaced or removed
 
     const { name, description, price, quantity } = req.body;
 
@@ -353,14 +463,11 @@ exports.updateItemImages = async (req, res) => {
       userId,
     };
 
+    // Find the item to update
     const findItem = await Item.findOne({
-      where: {
-        id: itemId,
-        userId,
-      },
+      where: { id: itemId, userId },
+      transaction: t,
     });
-
-    console.log(findItem);
 
     if (!findItem) {
       return res.status(401).json({
@@ -368,63 +475,85 @@ exports.updateItemImages = async (req, res) => {
       });
     }
 
+    // Update item details
     await Item.update(itemDetails, {
-      where: {
-        id: itemId,
-        userId,
-      },
+      where: { id: itemId, userId },
+      transaction: t,
     });
 
-    //handle Imgaes Upload
+    // Handle old images removal
+    if (ImageIds.length > 0) {
+      const oldImages = await MultipleImageItems.findAll({
+        where: { id: ImageIds },
+        transaction: t,
+      });
 
+      for (const image of oldImages) {
+        const oldFilePath = path.join(
+          __dirname,
+          "../public/uploads",
+          path.basename(image.image_url)
+        );
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath); // Delete file from filesystem
+        }
+        await MultipleImageItems.destroy({
+          where: { id: image.id },
+          transaction: t,
+        });
+      }
+    }
+
+    // Handle new image uploads
     const uploadDir = path.join(__dirname, "../public/uploads");
 
-    // if (!fs.existsSync(uploadDir)) {
-    //   fs.mkdirSync(uploadDir, { recursive: true });
-    // }
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
     const newImageIds = [];
+
     for (const file of files) {
       const fileExtension = path.extname(file.originalname);
       const originalName = path.basename(file.originalname, fileExtension);
       const newFilename = `${originalName}-${Date.now()}${fileExtension}`;
       const tempPath = file.path;
       const targetPath = path.join(uploadDir, newFilename);
-      fs.renameSync(tempPath, targetPath);
+
+      if (fs.existsSync(tempPath)) {
+        fs.renameSync(tempPath, targetPath);
+      } else {
+        console.error("Source file does not exist:", tempPath);
+        throw new Error(`File does not exist at temp path: ${tempPath}`);
+      }
 
       const imageUrl = `/uploads/${newFilename}`;
-      console.log("----=================================", ImageIds);
 
-      const [image, created] = await MultipleImageItems.update(
+      // Generate a unique ImageNameId or use a counter based on your requirements
+      const ImageNameId = Date.now();
+
+      // Save new image record in database with ImageNameId
+      const newImage = await MultipleImageItems.create(
         {
-          id: ImageIds.shift(),
           name: originalName,
+          ImageNameId: ImageNameId, // Ensure this field is set
           ItemId: itemId,
           image_url: imageUrl,
         },
-        {
-          where: { id: itemId },
-        }
+        { transaction: t }
       );
 
-      if (created || image) {
-        newImageIds.push(image.id);
-      }
+      newImageIds.push(newImage.id);
     }
 
-    if (ImageIds.length > 0) {
-      await MultipleImageItems.destroy({
-        where: {
-          id: ImageIds,
-        },
-      });
-    }
+    await t.commit();
 
     res.status(201).json({
       message: "Item and images updated successfully",
       item: findItem,
     });
   } catch (error) {
+    await t.rollback();
     console.error("Error updating item:", error);
     res.status(500).json({
       message: "An error occurred while updating the item",
@@ -433,6 +562,7 @@ exports.updateItemImages = async (req, res) => {
   }
 };
 
+/////////////////////////////////////
 // exports.updateItemImages = async (req, res) => {
 //   try {
 
