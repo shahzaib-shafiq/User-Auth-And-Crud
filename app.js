@@ -3,56 +3,28 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const morgan = require("morgan");
 const multer = require("multer");
+const cookieParser = require("cookie-parser");
 const upload = multer({ dest: "uploads/" });
 const app = express();
 const path = require("path");
-const cors = require("cors");
-const passport = require("passport");
-const passportSetup = require("./src/middleware/passport");
-require("dotenv").config();
-const cookieSession = require("cookie-session");
 app.use(express.static("uploads"));
-
+app.use(cookieParser());
+var cors = require("cors");
 app.use("/uploads", express.static("uploads"));
 //app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
-
 app.use(
   "/public/uploads",
   express.static(path.join(__dirname, "/public/uploads"))
 );
 
-///Google Auth
-
-app.use(
-  cookieSession({
-    name: "session",
-    keys: ["secret"],
-    maxAge: 24 * 60 * 60 * 100,
-  })
-);
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-app.use(
-  cors({
-    origin: "http://localhost3000",
-    methods: "GET,POST,PUT,DELETE",
-    credentials: true,
-  })
-);
-
-///Google Auth
-
 // const { dbConnection } = require("./Config/mySql");
 const { SERVER_PORT } = require("./src/Config/config");
 const Users = require("./src/Routes/user_route");
-const SocialLogin = require("./src/Routes/google_route");
 
 const Items = require("./src/Routes/item_route");
 const dbConnection = require("./src/Config/db_connection");
 const associations = require("./src/Models/user_items_associations");
-
+const authRoutes = require("./src/middleware/Google_Auth");
 //const multipleImagesItem = require("./Routes/MultipleImagesRoute");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -71,8 +43,7 @@ const PORT = SERVER_PORT | 3000;
 })();
 app.use("/users", Users);
 app.use("/items", Items);
-app.use("/social", SocialLogin);
-
+app.use(authRoutes);
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
