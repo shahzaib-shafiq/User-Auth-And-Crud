@@ -63,11 +63,7 @@ router.get("/auth/google/callback", async (req, res) => {
   }
 
   try {
-    // Exchange the authorization code for tokens
     console.log("code-----------------", code);
-    // const tokens = await client.getToken(code);
-    // console.log("Token-----------------", tokens);
-    // const { access_token } = tokens;
 
     console.log("GOOGLE_CLIENT_ID-----------------", GOOGLE_CLIENT_ID);
     console.log("GOOGLE_CLIENT_SECRET-----------------", GOOGLE_CLIENT_SECRET);
@@ -96,52 +92,19 @@ router.get("/auth/google/callback", async (req, res) => {
       "userInfoResponse----------------------------------------======================-----------------",
       userInfoResponse
     );
-
-    return res.status(200).json({ message: "qwerty----------------------" });
+    return res.redirect(307, "/auth/google");
+    //return res.status(200).json({ message: "qwerty----------------------" });
   } catch (error) {
     console.error("Error during Google authentication:", error);
     res.status(500).json({ error: "Authentication failed" });
   }
 });
 
-async function getTokens({ code, clientId, clientSecret, redirectUri }) {
-  const url = "https://oauth2.googleapis.com/token";
-  const values = {
-    code,
-    client_id: clientId,
-    client_secret: clientSecret,
-    redirect_uri: redirectUri,
-    grant_type: "authorization_code",
-  };
-
-  try {
-    const response = await axios.post(url, querystring.stringify(values), {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to fetch auth tokens`);
-    throw new Error(error.message);
-  }
-}
-
-router.get("/auth/me", (req, res) => {
-  console.log("get me");
-  try {
-    const decoded = jwt.verify(req.cookies[COOKIE_NAME], JWT_SECRET);
-    console.log("decoded", decoded);
-    return res.send(decoded);
-  } catch (err) {
-    console.log(err);
-    res.status(401).send("Unauthorized");
-  }
-});
-
-router.post("/auth/google", async (req, res) => {
+router.get("/auth/google", async (req, res) => {
   try {
     console.log("google login success");
+    // Additional logic for handling login success
+    return res.status(200).json({ message: "Google login successful" });
   } catch (error) {
     console.error("Error during Google authentication:", error);
     res.status(500).json({ error: "Authentication failed" });
