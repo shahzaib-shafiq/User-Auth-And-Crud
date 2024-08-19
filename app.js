@@ -25,6 +25,7 @@ const Items = require("./src/Routes/item_route");
 const dbConnection = require("./src/Config/db_connection");
 const associations = require("./src/Models/user_items_associations");
 const authRoutes = require("./src/middleware/Google_Auth");
+const Google_Callback = require("./src/middleware/Google_Callback");
 //const multipleImagesItem = require("./Routes/MultipleImagesRoute");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -44,6 +45,7 @@ const PORT = SERVER_PORT | 3000;
 app.use("/users", Users);
 app.use("/items", Items);
 app.use(authRoutes);
+// app.use(Google_Callback);
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
