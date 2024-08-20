@@ -1,5 +1,4 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const axios = require("axios");
 var cors = require("cors");
 const querystring = require("querystring");
@@ -10,9 +9,9 @@ const app = express();
 const {
   SERVER_ROOT_URI,
   GOOGLE_CLIENT_ID,
-  JWT_SECRET,
+
   GOOGLE_CLIENT_SECRET,
-  COOKIE_NAME,
+
   UI_ROOT_URI,
 } = require("../Config/config");
 
@@ -88,10 +87,7 @@ router.get("/auth/google/callback", async (req, res) => {
 
     console.log("User Info:", userInfoResponse.data);
 
-    console.log(
-      "userInfoResponse----------------------------------------======================-----------------",
-      userInfoResponse
-    );
+    console.log("userInfoResponse-------------------", userInfoResponse);
     return res.redirect(307, "/auth/google");
     //return res.status(200).json({ message: "qwerty----------------------" });
   } catch (error) {

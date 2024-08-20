@@ -25,11 +25,12 @@ const Items = require("./src/Routes/item_route");
 const dbConnection = require("./src/Config/db_connection");
 const associations = require("./src/Models/user_items_associations");
 const authRoutes = require("./src/middleware/Google_Auth");
-
+const fileUpload = require("express-fileupload");
 //const multipleImagesItem = require("./Routes/MultipleImagesRoute");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
+app.use(fileUpload());
 
 const PORT = SERVER_PORT | 3000;
 (async function () {

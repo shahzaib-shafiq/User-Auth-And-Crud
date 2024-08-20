@@ -415,7 +415,7 @@ exports.updateItemImages = async (req, res) => {
         throw new Error(`File does not exist at temp path: ${tempPath}`);
       }
 
-      const imageUrl = `/uploads/${newFilename}`;
+      const imageUrl = `http://localhost:3001/public/uploads/${newFilename}`;
 
       const ImageNameId = Date.now();
 
